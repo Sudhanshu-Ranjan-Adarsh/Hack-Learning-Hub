@@ -1,0 +1,133 @@
+w<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Hack — a learning and practice hub for curious builders.">
+  <title>Hack — Learn. Build. Repeat.</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#home" aria-label="Hack home"><span class="brand-mark">H</span><span>hack<span class="dot">.</span></span></a>
+      <p class="nav-label">WORKSPACE</p>
+      <nav class="nav-list" aria-label="Main navigation">
+        <a href="#home" class="nav-link active" data-page="home"><span>◫</span> Dashboard</a>
+        <a href="#syllabus" class="nav-link" data-page="syllabus"><span>▤</span> Syllabus & system</a>
+        <a href="#materials" class="nav-link" data-page="materials"><span>▷</span> Learning materials</a>
+        <a href="#account" class="nav-link" data-page="account"><span>◎</span> Sign in / Register</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="mini-status"><span class="status-dot"></span><div><b>Learning mode</b><small>Build one thing at a time</small></div></div>
+        <p class="sidebar-foot">DEMO BUILD · v1.0</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">☰</button>
+        <div class="breadcrumb">Workspace <span>/</span> <b id="pageCrumb">Dashboard</b></div>
+        <div class="top-actions"><span class="live-pill"><i></i> DEMO</span><button class="avatar" id="accountShortcut" title="Account">?</button></div>
+      </header>
+
+      <section class="page active" id="page-home" data-title="Dashboard">
+        <div class="hero">
+          <div class="hero-copy">
+            <div class="eyebrow"><span class="eyebrow-line"></span> YOUR LEARNING SPACE</div>
+            <h1>Turn curiosity<br>into <em>capability.</em></h1>
+            <p class="hero-sub">A small step every day. A real skill over time. Learn the concepts, practise the fundamentals, and build things that work.</p>
+            <div class="hero-actions"><a class="btn btn-primary" href="#materials">Explore materials <span>↗</span></a><a class="text-link" href="#syllabus">View learning path <span>→</span></a></div>
+          </div>
+          <div class="hero-art" aria-label="Abstract learning illustration">
+            <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+            <div class="code-window"><div class="window-dots"><i></i><i></i><i></i><span>idea.js</span></div><div class="code-lines"><p><b>01</b> <span class="purple">const</span> idea = <span class="green">"learn"</span>;</p><p><b>02</b> <span class="purple">while</span> (curious) {</p><p><b>03</b> &nbsp; build();</p><p><b>04</b> &nbsp; improve();</p><p><b>05</b> }</p></div><div class="code-footer"><span>●</span> READY TO BUILD</div></div>
+            <div class="float-chip chip-top">✳ &nbsp; STAY CURIOUS</div><div class="float-chip chip-bottom">{" "} progress = practice</div>
+          </div>
+        </div>
+
+        <div class="welcome-row"><div><p class="section-kicker">THE HACK ANTHEM</p><h2>Learn boldly. Build honestly.</h2></div><p class="section-note">No magic shortcuts. Just clear concepts, small experiments, useful feedback, and consistent practice.</p></div>
+        <div class="anthem-grid">
+          <article class="anthem-card"><span class="card-number">01 / LEARN</span><div class="icon-box lavender">⌘</div><h3>Understand the why</h3><p>Start with the concept. Learn what a tool does, why it exists, and when it is useful.</p></article>
+          <article class="anthem-card"><span class="card-number">02 / BUILD</span><div class="icon-box mint">⌁</div><h3>Make it real</h3><p>Turn ideas into small working projects. Connect the pieces and test the whole flow.</p></article>
+          <article class="anthem-card"><span class="card-number">03 / IMPROVE</span><div class="icon-box peach">↗</div><h3>Grow through practice</h3><p>Review mistakes, take quizzes, explain your work, and improve one feature at a time.</p></article>
+        </div>
+
+        <div class="section-heading"><div><p class="section-kicker">YOUR SYSTEM</p><h2>Simple standards. Strong habits.</h2></div><span class="subtle-tag">THE HACK WAY</span></div>
+        <div class="standards-grid">
+          <div class="standard"><span class="standard-icon">01</span><div><h3>Clarity before speed</h3><p>Understand the problem before choosing a tool.</p></div></div>
+          <div class="standard"><span class="standard-icon">02</span><div><h3>Build small, test often</h3><p>A working core beats ten unfinished features.</p></div></div>
+          <div class="standard"><span class="standard-icon">03</span><div><h3>Own your code</h3><p>Be ready to explain, debug, and improve what you submit.</p></div></div>
+          <div class="standard"><span class="standard-icon">04</span><div><h3>Respect the user</h3><p>Keep interfaces accessible, safe, and easy to understand.</p></div></div>
+        </div>
+
+        <div class="section-heading"><div><p class="section-kicker">TECH STACK</p><h2>Tools behind the experience</h2></div><span class="section-note">Made for learning now, ready to grow.</span></div>
+        <div class="tech-strip"><div><b class="tech-logo orange">5</b><span><strong>HTML5</strong><small>Page structure</small></span></div><div><b class="tech-logo blue">#</b><span><strong>CSS3</strong><small>Visual design</small></span></div><div><b class="tech-logo yellow">JS</b><span><strong>JavaScript</strong><small>Browser logic</small></span></div><div><b class="tech-logo green">N</b><span><strong>Node.js</strong><small>Backend runtime</small></span></div><div><b class="tech-logo navy">PG</b><span><strong>Mariadb/MySQL</strong><small>Hosted database</small></span></div></div>
+
+        <details class="accordion"><summary>What is Hack? <span>+</span></summary><p>Hack is a demo learning hub: a place to explore a learning path, read or watch resources, take short quizzes, and keep basic progress while signed in.</p></details>
+        <details class="accordion"><summary>Who is this for? <span>+</span></summary><p>Beginners and curious builders who want a clear path from learning fundamentals to building useful projects.</p></details>
+        <details class="accordion"><summary>What does this demo store? <span>+</span></summary><p>The starter stores account details securely using password hashes and records quiz scores in Mariadb/MySQL. It does not include email verification, password reset, or admin content management yet.</p></details>
+        <footer class="footer"><span>HACK © 2026</span><span>Stay curious. Keep building.</span></footer>
+      </section>
+
+      <section class="page" id="page-account" data-title="Sign in / Register">
+        <div class="page-intro"><p class="section-kicker">YOUR SPACE</p><h1>Start where you are.</h1><p>Create an account to save quiz results, or sign in to continue.</p></div>
+        <div class="auth-layout">
+          <div class="auth-aside"><div class="auth-symbol">H<span>.</span></div><p class="section-kicker">A NOTE TO BUILDERS</p><h2>Your next skill starts with one small step.</h2><p>Make time to learn. Make space to experiment. Keep track of what you discover.</p><div class="auth-perks"><span>✓ &nbsp; Save quiz attempts</span><span>✓ &nbsp; Learn at your own pace</span><span>✓ &nbsp; Keep your progress together</span></div></div>
+          <div class="auth-card">
+            <div class="auth-tabs"><button class="auth-tab active" data-auth-tab="login">Login / Awake</button><button class="auth-tab" data-auth-tab="register">First-time sign up</button></div>
+            <form id="loginForm" class="auth-form">
+              <h2>Welcome back</h2><p class="form-muted">Pick up where you left off.</p>
+              <label>Email address<input name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></label>
+              <label>Password<input name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="At least 8 characters"></label>
+              <button class="btn btn-primary btn-full" type="submit">Awake / Log in <span>→</span></button>
+              <p class="form-message" id="loginMessage" role="status"></p>
+            </form>
+            <form id="registerForm" class="auth-form hidden">
+              <h2>Create your account</h2><p class="form-muted">A fresh start, one skill at a time.</p>
+              <label>Your name<input name="name" autocomplete="name" required minlength="2" maxlength="80" placeholder="How should we call you?"></label>
+              <label>Email address<input name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></label>
+              <label>Password<input name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="128" placeholder="Use at least 8 characters"></label>
+              <button class="btn btn-primary btn-full" type="submit">Create account <span>→</span></button>
+              <p class="form-message" id="registerMessage" role="status"></p>
+            </form>
+            <div class="signed-in hidden" id="signedInBox"><div class="success-mark">✓</div><h2>You’re signed in.</h2><p id="signedInText">Your learning space is ready.</p><a class="btn btn-primary btn-full" href="#materials">Go to learning materials →</a><button class="btn btn-quiet btn-full" id="logoutButton">Log out</button></div>
+            <p class="privacy-note">Demo note: use a unique test password. Never reuse your personal or banking password.</p>
+          </div>
+        </div>
+        <footer class="footer"><span>HACK © 2026</span><span>Account · Privacy-minded demo</span></footer>
+      </section>
+
+      <section class="page" id="page-syllabus" data-title="Syllabus & system">
+        <div class="page-intro"><p class="section-kicker">THE LEARNING PATH</p><h1>From fundamentals to full stack.</h1><p>A simple roadmap for understanding how the web works, one layer at a time.</p></div>
+        <div class="path-banner"><div><span class="subtle-tag light-tag">SUGGESTED ORDER</span><h2>Learn → Practise → Connect → Ship</h2><p>Move forward when you can explain the idea and demonstrate it.</p></div><div class="path-graphic">01 <span>→</span> 02 <span>→</span> 03 <span>→</span> 04</div></div>
+        <div class="syllabus-list">
+          <article class="module-card"><div class="module-top"><span class="module-index">01</span><span class="module-status">FOUNDATION</span></div><h2>Frontend essentials</h2><p>Build the interface people see and interact with.</p><ul><li>HTML structure, semantic elements and forms</li><li>CSS layout, responsive design and accessibility</li><li>JavaScript events, arrays, objects and fetch()</li></ul><div class="module-meta"><span>Suggested: 1–2 weeks</span><a href="#materials">Study materials ↗</a></div></article>
+          <article class="module-card"><div class="module-top"><span class="module-index">02</span><span class="module-status">SERVER</span></div><h2>Backend & APIs</h2><p>Handle requests, validate input and return responses.</p><ul><li>Node.js runtime and npm dependencies</li><li>Express routes, middleware and JSON</li><li>HTTP methods, status codes and error handling</li></ul><div class="module-meta"><span>Suggested: 1–2 weeks</span><a href="#materials">Study materials ↗</a></div></article>
+          <article class="module-card"><div class="module-top"><span class="module-index">03</span><span class="module-status">DATA</span></div><h2>Database & identity</h2><p>Store data safely and connect it to application logic.</p><ul><li>SQL tables, keys, SELECT and INSERT</li><li>Mariadb/MySQL and parameterized queries</li><li>Password hashing, sessions and access checks</li></ul><div class="module-meta"><span>Suggested: 1–2 weeks</span><a href="#materials">Study materials ↗</a></div></article>
+          <article class="module-card"><div class="module-top"><span class="module-index">04</span><span class="module-status">DEPLOY</span></div><h2>Integration & hosting</h2><p>Ship the app so multiple users can access it online.</p><ul><li>Environment variables and production settings</li><li>Git, deployment and hosted Mariadb/MySQL</li><li>Testing, logs, backups and security basics</li></ul><div class="module-meta"><span>Suggested: 1 week</span><a href="#materials">Study materials ↗</a></div></article>
+        </div>
+        <div class="system-note"><span class="note-icon">i</span><div><b>System standard</b><p>Keep secrets on the server, validate every request, use HTTPS in production, and never trust browser input just because the form validates it.</p></div></div>
+        <footer class="footer"><span>HACK © 2026</span><span>Syllabus & system</span></footer>
+      </section>
+
+      <section class="page" id="page-materials" data-title="Learning materials">
+        <div class="page-intro"><p class="section-kicker">LIBRARY & PRACTICE</p><h1>Learn it. Try it. Remember it.</h1><p>Starter resources and short quizzes. Sign in to submit quizzes and save your scores.</p></div>
+        <div class="library-controls"><div><p class="section-kicker">CONTENT LIBRARY</p><h2>Pick your next lesson</h2></div><span class="subtle-tag">VIDEOS · NOTES · QUIZZES</span></div>
+        <div class="resource-grid">
+          <article class="resource-card"><div class="resource-cover cover-html"><span>01 / FRONTEND</span><strong>&lt;/&gt;</strong><small>STRUCTURE THE WEB</small></div><div class="resource-body"><span class="resource-type">VIDEO / GUIDE</span><h3>HTML, CSS & JavaScript</h3><p>Learn how structure, styling, and browser logic work together.</p><a class="resource-link" href="https://developer.mozilla.org/en-US/docs/Learn" https://mariadb.com/docstarget="_blank" rel="noreferrer">Open learning guide ↗</a></div></article>
+          <article class="resource-card"><div class="resource-cover cover-node"><span>02 / BACKEND</span><strong>{ }</strong><small>REQUESTS INTO RESPONSES</small></div><div class="resource-body"><span class="resource-type">DOCS / GUIDE</span><h3>Node.js & Express</h3><p>Understand servers, routes, APIs, JSON, and request handling.</p><a class="resource-link" href="https://expressjs.com/en/starter/installing.html" target="_blank" rel="noreferrer">Open Express guide ↗</a></div></article>
+          <article class="resource-card"><div class="resource-cover cover-db"><span>03 / DATABASE</span><strong>▤</strong><small>DATA THAT LASTS</small></div><div class="resource-body"><span class="resource-type">DOCS / PRACTICE</span><h3>SQL & Mariadb/MySQL</h3><p>Learn tables, queries, relationships, and reliable data storage.</p><a class="resource-link" href="https://mariadb.com/docs" target="_blank" rel="noreferrer">Open SQL tutorial ↗</a></div></article>
+        </div>
+        <div class="quiz-section"><div class="quiz-heading"><div><p class="section-kicker">QUICK CHECK</p><h2>Test your understanding</h2><p>Short quizzes with scores saved to your account.</p></div><span class="quiz-badge">3 QUESTIONS EACH</span></div>
+          <div class="quiz-picks"><button class="quiz-pick active" data-quiz="web-basics"><span class="quiz-pick-icon">⌘</span><span><b>Web basics</b><small>HTML · CSS · JavaScript</small></span><span class="arrow">→</span></button><button class="quiz-pick" data-quiz="full-stack"><span class="quiz-pick-icon green-icon">⌁</span><span><b>Full-stack basics</b><small>Backend · API · Database</small></span><span class="arrow">→</span></button></div>
+          <div class="quiz-box" id="quizBox"><div class="quiz-box-top"><span id="quizLabel">WEB BASICS</span><span id="quizCount">Ready when you are</span></div><div id="quizContent"><h3>Ready for a quick check?</h3><p>Choose a quiz above and start when you are ready.</p><button class="btn btn-primary" id="startQuiz">Start quiz →</button></div><p class="form-message" id="quizMessage" role="status"></p></div>
+        </div>
+        <footer class="footer"><span>HACK © 2026</span><span>Library & practice</span></footer>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
