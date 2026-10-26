@@ -9,6 +9,10 @@ let quizLibrary = [];
 let quizDifficulty = "All";
 let quizSearch = "";
 let quizLibraryLoaded = false;
+let quizRemaining = [];
+let quizTimer = null;
+let quizSubmitting = false;
+
 
 function toast(message) {
   const el = $("#toast");
@@ -189,53 +193,185 @@ function renderSelectedQuizStart() {
   $("#quizMessage").textContent = "";
   $("#startQuiz").addEventListener("click", startQuiz);
 }
+
 async function startQuiz() {
   if (!currentUser) {
     toast("Sign in to take and save a quiz.");
     location.hash = "#account";
     return;
   }
+
+  clearInterval(quizTimer);
+  quizSubmitting = false;
+
   try {
     quizData = await api(`/api/quizzes/${selectedQuiz}`);
     quizIndex = 0;
     quizAnswers = Array(quizData.questions.length).fill(null);
+    quizRemaining = Array(quizData.questions.length).fill(
+      quizData.secondsPerQuestion || 30
+    );
     renderQuestion();
-  } catch (error) { $("#quizMessage").textContent = error.message; }
+  } catch (error) {
+    $("#quizMessage").textContent = error.message;
+  }
 }
+
 function renderQuestion() {
+  clearInterval(quizTimer);
+
   const q = quizData.questions[quizIndex];
-  $("#quizCount").textContent = `QUESTION ${quizIndex + 1} OF ${quizData.questions.length}`;
+  const duration = quizData.secondsPerQuestion || 30;
+
+  $("#quizCount").textContent =
+    `QUESTION ${quizIndex + 1} OF ${quizData.questions.length}`;
+
   $("#quizContent").innerHTML = `
+    <div class="quiz-timer" role="status" aria-live="polite">
+      Time remaining: <strong id="questionTimer">${quizRemaining[quizIndex]}</strong>s
+    </div>
     <p class="quiz-question">${quizIndex + 1}. ${escapeHtml(q.question)}</p>
     <div class="quiz-options">${q.options.map((option, i) => `
-      <label class="quiz-option"><input type="radio" name="answer" value="${i}" ${quizAnswers[quizIndex] === i ? "checked" : ""}>
-      <span>${escapeHtml(option)}</span></label>`).join("")}</div>
-    <div class="quiz-nav"><button class="btn btn-quiet" id="prevQuestion" ${quizIndex === 0 ? "disabled" : ""}>← Previous</button>
-    <button class="btn btn-primary" id="nextQuestion">${quizIndex === quizData.questions.length - 1 ? "Submit quiz" : "Next →"}</button></div>`;
-  $("#quizContent").querySelectorAll('input[name="answer"]').forEach((input) => input.addEventListener("change", () => { quizAnswers[quizIndex] = Number(input.value); }));
-  $("#prevQuestion").addEventListener("click", () => { quizIndex--; renderQuestion(); });
+      <label class="quiz-option">
+        <input type="radio" name="answer" value="${i}"
+          ${quizAnswers[quizIndex] === i ? "checked" : ""}>
+        <span>${escapeHtml(option)}</span>
+      </label>`).join("")}</div>
+    <p class="form-message">Unanswered questions receive zero marks. You can move back before submitting.</p>
+    <div class="quiz-nav">
+      <button class="btn btn-quiet" id="prevQuestion"
+        ${quizIndex === 0 ? "disabled" : ""}>← Previous</button>
+      <button class="btn btn-primary" id="nextQuestion">
+        ${quizIndex === quizData.questions.length - 1
+          ? "Submit quiz" : "Next →"}
+      </button>
+    </div>`;
+
+  $("#quizMessage").textContent = "";
+
+  $("#quizContent")
+    .querySelectorAll('input[name="answer"]')
+    .forEach((input) => {
+      input.addEventListener("change", () => {
+        quizAnswers[quizIndex] = Number(input.value);
+      });
+    });
+
+  $("#prevQuestion").addEventListener("click", () => {
+    if (quizIndex > 0) {
+      quizIndex--;
+      renderQuestion();
+    }
+  });
+
   $("#nextQuestion").addEventListener("click", submitOrNext);
+
+  quizTimer = setInterval(() => {
+    if (quizSubmitting) {
+      clearInterval(quizTimer);
+      return;
+    }
+
+    quizRemaining[quizIndex] = Math.max(
+      0,
+      quizRemaining[quizIndex] - 1
+    );
+
+    const timer = $("#questionTimer");
+    if (timer) timer.textContent = quizRemaining[quizIndex];
+
+    if (quizRemaining[quizIndex] <= 0) {
+      clearInterval(quizTimer);
+
+      if (quizIndex < quizData.questions.length - 1) {
+        quizIndex++;
+        renderQuestion();
+      } else {
+        finishQuiz();
+      }
+    }
+  }, 1000);
 }
+
 async function submitOrNext() {
-  if (quizAnswers[quizIndex] === null) {
-    $("#quizMessage").textContent = "Choose an answer before continuing.";
+  if (quizIndex < quizData.questions.length - 1) {
+    quizIndex++;
+    renderQuestion();
     return;
   }
-  $("#quizMessage").textContent = "";
-  if (quizIndex < quizData.questions.length - 1) { quizIndex++; renderQuestion(); return; }
+
+  await finishQuiz();
+}
+
+async function finishQuiz() {
+  if (quizSubmitting) return;
+
+  quizSubmitting = true;
+  clearInterval(quizTimer);
+
+  const content = $("#quizContent");
+  content.innerHTML = "<h3>Submitting your quiz...</h3>";
+
   try {
     const result = await api(`/api/quizzes/${selectedQuiz}/submit`, {
-      method: "POST", body: JSON.stringify({ answers: quizAnswers })
+      method: "POST",
+      body: JSON.stringify({
+        attemptId: quizData.attemptId,
+        answers: quizAnswers
+      })
     });
+
     $("#quizCount").textContent = "QUIZ COMPLETE";
-    $("#quizContent").innerHTML = `<div class="success-mark">✓</div><h3>Your score: ${result.score} / ${result.total}</h3><p>${result.score === result.total ? "Excellent work. Keep the momentum going." : "Good practice. Review the concepts and give it another try."}</p><button class="btn btn-primary" id="retryQuiz">Try again ↻</button>`;
+
+    const review = (result.review || []).map((item, index) => {
+      const status = item.correct
+        ? "Correct"
+        : item.selectedAnswer === null
+          ? "Unanswered"
+          : "Incorrect";
+
+      return `
+        <article class="quiz-review-item">
+          <h4>${index + 1}. ${escapeHtml(item.question)}</h4>
+          <p><strong>Status:</strong> ${status}</p>
+          <p><strong>Your answer:</strong>
+            ${item.selectedAnswer === null
+              ? "No answer"
+              : escapeHtml(item.selectedAnswer)}
+          </p>
+          <p><strong>Correct answer:</strong>
+            ${escapeHtml(item.correctAnswer)}</p>
+          ${item.explanation
+            ? `<p><strong>Explanation:</strong> ${escapeHtml(item.explanation)}</p>`
+            : ""}
+        </article>`;
+    }).join("");
+
+    content.innerHTML = `
+      <div class="success-mark">✓</div>
+      <h3>Your score: ${result.score} / ${result.total}</h3>
+      <p>Correct: ${result.correct} · Incorrect: ${result.incorrect}
+        · Unanswered: ${result.unanswered}</p>
+      <p>Accuracy: ${result.accuracy}%</p>
+      <h3>Answer review</h3>
+      ${review}
+      <button class="btn btn-primary" id="retryQuiz">Try again ↻</button>`;
+
     $("#retryQuiz").addEventListener("click", startQuiz);
     toast("Quiz result saved.");
   } catch (error) {
+    quizSubmitting = false;
     $("#quizMessage").textContent = error.message;
-    if (error.message.includes("sign in")) { currentUser = null; }
+
+    content.innerHTML = `
+      <h3>Could not submit the quiz</h3>
+      <p>${escapeHtml(error.message)}</p>
+      <button class="btn btn-primary" id="retrySubmit">Retry submission</button>`;
+
+    $("#retrySubmit").addEventListener("click", finishQuiz);
   }
 }
+
 async function renderLeaderboard() {
   const message = $("#leaderboardMessage");
   const body = $("#leaderboardBody");
