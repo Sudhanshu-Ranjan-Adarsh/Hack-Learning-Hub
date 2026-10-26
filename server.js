@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const path = require("path");
+const crypto = require("crypto");
 const helmet = require("helmet");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
@@ -383,6 +384,20 @@ app.get("/api/quizzes", (_req, res) => {
   });
 });
 
+
+function shuffleArray(items) {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = crypto.randomInt(i + 1);
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function secondsForDifficulty(difficulty) {
+  return ({ Easy: 15, Medium: 30, Hard: 60 })[difficulty] || 30;
+}
+
 app.get("/api/quizzes/:key", requireAuth, (req, res) => {
   const quiz = quizzes[req.params.key];
 
@@ -390,15 +405,41 @@ app.get("/api/quizzes/:key", requireAuth, (req, res) => {
     return res.status(404).json({ error: "Quiz not found." });
   }
 
+  const attemptId = crypto.randomUUID();
+
+  const attemptQuestions = shuffleArray(
+    quiz.questions.map((question, originalIndex) => ({
+      originalIndex,
+      optionOrder: shuffleArray(
+        question.options.map((_, originalOptionIndex) => originalOptionIndex)
+      )
+    }))
+  );
+
+  if (!req.session.quizAttempts) {
+    req.session.quizAttempts = {};
+  }
+
+  req.session.quizAttempts[attemptId] = {
+    quizKey: quiz.key,
+    questions: attemptQuestions,
+    createdAt: Date.now()
+  };
+
   res.json({
+    attemptId,
     key: quiz.key,
     title: quiz.title,
     category: quiz.category,
     difficulty: quiz.difficulty,
-    questions: quiz.questions.map(({ question, options }) => ({
-      question,
-      options
-    }))
+    secondsPerQuestion: secondsForDifficulty(quiz.difficulty),
+    questions: attemptQuestions.map((item) => {
+      const question = quiz.questions[item.originalIndex];
+      return {
+        question: question.question,
+        options: item.optionOrder.map((i) => question.options[i])
+      };
+    })
   });
 });
 
@@ -410,23 +451,58 @@ app.post("/api/quizzes/:key/submit", requireAuth, async (req, res, next) => {
       return res.status(404).json({ error: "Quiz not found." });
     }
 
-    const answers = req.body.answers;
+    const { attemptId, answers } = req.body || {};
+    const attempts = req.session.quizAttempts;
+    const attempt = attempts && attempts[attemptId];
 
-    if (!Array.isArray(answers) ||
-        answers.length !== quiz.questions.length ||
-        answers.some((n, i) =>
-          !Number.isInteger(n) ||
-          n < 0 ||
-          n >= quiz.questions[i].options.length
-        )) {
+    if (!attempt || attempt.quizKey !== quiz.key) {
+      return res.status(400).json({
+        error: "Quiz attempt not found or already submitted. Start a new quiz."
+      });
+    }
+
+    if (!Array.isArray(answers) || answers.length !== attempt.questions.length) {
       return res.status(400).json({ error: "Invalid answers submitted." });
     }
 
-    const score = quiz.questions.reduce(
-      (sum, question, index) =>
-        sum + (question.answer === answers[index] ? 1 : 0),
-      0
-    );
+    for (let i = 0; i < answers.length; i++) {
+      const answer = answers[i];
+      const optionCount =
+        quiz.questions[attempt.questions[i].originalIndex].options.length;
+
+      if (answer !== null &&
+          (!Number.isInteger(answer) || answer < 0 || answer >= optionCount)) {
+        return res.status(400).json({ error: "Invalid answer option." });
+      }
+    }
+
+    let score = 0;
+    let incorrect = 0;
+    let unanswered = 0;
+
+    const review = attempt.questions.map((item, index) => {
+      const question = quiz.questions[item.originalIndex];
+      const selectedShuffledIndex = answers[index];
+      const selectedOriginalIndex = selectedShuffledIndex === null
+        ? null
+        : item.optionOrder[selectedShuffledIndex];
+
+      const isCorrect = selectedOriginalIndex === question.answer;
+
+      if (selectedOriginalIndex === null) unanswered++;
+      else if (isCorrect) score++;
+      else incorrect++;
+
+      return {
+        question: question.question,
+        selectedAnswer: selectedOriginalIndex === null
+          ? null
+          : question.options[selectedOriginalIndex],
+        correctAnswer: question.options[question.answer],
+        correct: selectedOriginalIndex !== null && isCorrect,
+        explanation: question.explanation || null
+      };
+    });
 
     await pool.execute(
       `INSERT INTO quiz_attempts (user_id, quiz_key, score, total)
@@ -434,7 +510,19 @@ app.post("/api/quizzes/:key/submit", requireAuth, async (req, res, next) => {
       [req.session.user.id, req.params.key, score, quiz.questions.length]
     );
 
-    res.json({ score, total: quiz.questions.length });
+    delete req.session.quizAttempts[attemptId];
+
+    res.json({
+      score,
+      total: quiz.questions.length,
+      correct: score,
+      incorrect,
+      unanswered,
+      accuracy: quiz.questions.length
+        ? Math.round((score / quiz.questions.length) * 1000) / 10
+        : 0,
+      review
+    });
   } catch (err) {
     next(err);
   }

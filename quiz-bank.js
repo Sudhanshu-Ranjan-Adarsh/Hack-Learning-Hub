@@ -365,4 +365,41 @@ for (const [key, questions] of Object.entries(hardQuestionOverrides)) {
   }));
 }
 
+
+const questionAdditions = require("./c-basics-additions");
+const controlFunctionAdditions = require("./c-control-functions-additions");
+const cJavaAdditions = require("./c-java-additions");
+
+for (const [key, questions] of Object.entries(questionAdditions)) {
+  if (!quizBank[key]) throw new Error("Missing quiz key: " + key);
+  const remaining = Math.max(0, 50 - quizBank[key].questions.length);
+  quizBank[key].questions.push(
+    ...questions.slice(0, remaining).map(([question, options, answer]) => ({
+      question, options, answer
+    }))
+  );
+}
+
+
+for (const [key, questions] of Object.entries(controlFunctionAdditions)) {
+  if (!quizBank[key]) throw new Error("Missing quiz key: " + key);
+  const remaining = Math.max(0, 50 - quizBank[key].questions.length);
+  quizBank[key].questions.push(
+    ...questions.slice(0, remaining).map(([question, options, answer]) => ({
+      question, options, answer
+    }))
+  );
+}
+
+
+for (const [key, questions] of Object.entries(cJavaAdditions)) {
+  if (!quizBank[key]) throw new Error("Missing quiz key: " + key);
+  const remaining = Math.max(0, 50 - quizBank[key].questions.length);
+  quizBank[key].questions.push(
+    ...questions.slice(0, remaining).map(([question, options, answer]) => ({
+      question, options, answer
+    }))
+  );
+}
+
 module.exports = quizBank;
