@@ -26,7 +26,10 @@ const dbConfig = {
   database: process.env.DB_NAME || "hack_db",
   waitForConnections: true,
   connectionLimit: 5,
-  queueLimit: 0
+  queueLimit: 0,
+  ...(process.env.DB_SSL_CA
+    ? { ssl: { ca: process.env.DB_SSL_CA } }
+    : {})
 };
 
 const pool = mysql.createPool(dbConfig);
@@ -372,7 +375,7 @@ async function start() {
   try {
     await initDb();
 
-    const server = app.listen(PORT, "127.0.0.1", () => {
+    const server = app.listen(PORT, "0.0.0.0", () => {
       console.log(`HACK is running at http://localhost:${PORT}`);
     });
 
