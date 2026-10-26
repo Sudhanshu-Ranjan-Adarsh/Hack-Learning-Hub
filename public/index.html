@@ -17,6 +17,7 @@ w<!doctype html>
         <a href="#home" class="nav-link active" data-page="home"><span>◫</span> Dashboard</a>
         <a href="#syllabus" class="nav-link" data-page="syllabus"><span>▤</span> Syllabus & system</a>
         <a href="#materials" class="nav-link" data-page="materials"><span>▷</span> Learning materials</a>
+        <a href="#leaderboard" class="nav-link" data-page="leaderboard"><span>🏆</span> Leaderboard</a>
         <a href="#account" class="nav-link" data-page="account"><span>◎</span> Sign in / Register</a>
       </nav>
       <div class="sidebar-bottom">
@@ -126,6 +127,46 @@ w<!doctype html>
         </div>
         <footer class="footer"><span>HACK © 2026</span><span>Library & practice</span></footer>
       </section>
+
+      <section class="page" id="page-leaderboard" data-title="Leaderboard">
+        <div class="page-intro">
+          <p class="section-kicker">COMMUNITY & PROGRESS</p>
+          <h1>Leaderboard</h1>
+          <p>Track learning progress and celebrate consistent practice.</p>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">TOP LEARNERS</p>
+            <h2>Quiz rankings</h2>
+          </div>
+          <button class="btn btn-primary" id="refreshLeaderboard" type="button">
+            Refresh rankings
+          </button>
+        </div>
+
+        <p id="leaderboardMessage" class="form-message" role="status">
+          Sign in to view the leaderboard.
+        </p>
+
+        <div class="table-wrap">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Learner</th>
+                <th>Points</th>
+                <th>Accuracy</th>
+                <th>Attempts</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardBody">
+              <tr><td colspan="5">Rankings will appear here.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
     </main>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>

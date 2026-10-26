@@ -30,7 +30,7 @@ function setAuthTab(tab) {
   $("#signedInBox").classList.add("hidden");
 }
 function showPage(pageName) {
-  const valid = ["home", "account", "syllabus", "materials"];
+  const valid = ["home", "account", "syllabus", "materials", "leaderboard"];
   const page = valid.includes(pageName) ? pageName : "home";
   $$(".page").forEach((section) => section.classList.toggle("active", section.id === `page-${page}`));
   $$(".nav-link").forEach((link) => link.classList.toggle("active", link.dataset.page === page));
@@ -38,6 +38,7 @@ function showPage(pageName) {
   $(".sidebar").classList.remove("open");
   if (page === "account") renderAccountState();
   if (page === "materials") renderQuizStart();
+  if (page === "leaderboard") renderLeaderboard();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 function navigate() {
@@ -129,6 +130,45 @@ async function submitOrNext() {
     if (error.message.includes("sign in")) { currentUser = null; }
   }
 }
+async function renderLeaderboard() {
+  const message = $("#leaderboardMessage");
+  const body = $("#leaderboardBody");
+  const refresh = $("#refreshLeaderboard");
+
+  if (!message || !body || !refresh) return;
+
+  message.textContent = "Loading rankings...";
+  body.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+  refresh.disabled = true;
+
+  try {
+    const data = await api("/api/leaderboard");
+
+    if (!data.leaderboard.length) {
+      message.textContent = "No quiz attempts yet. Complete a quiz to appear here.";
+      body.innerHTML = '<tr><td colspan="5">No rankings available yet.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = data.leaderboard.map((user) => `
+      <tr>
+        <td>${user.rank}</td>
+        <td>${escapeHtml(user.name)}</td>
+        <td>${user.points} / ${user.possible}</td>
+        <td>${user.accuracy}%</td>
+        <td>${user.attempts}</td>
+      </tr>
+    `).join("");
+
+    message.textContent = "Rankings based on total correct answers across recorded quiz attempts.";
+  } catch (error) {
+    body.innerHTML = '<tr><td colspan="5">Rankings could not be loaded.</td></tr>';
+    message.textContent = error.message;
+  } finally {
+    refresh.disabled = false;
+  }
+}
+
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 }
@@ -138,6 +178,7 @@ $$(".nav-link").forEach((link) => link.addEventListener("click", (event) => {
   if (location.hash === link.getAttribute("href")) showPage(link.dataset.page);
 }));
 $("#accountShortcut").addEventListener("click", () => { location.hash = "#account"; });
+$("#refreshLeaderboard").addEventListener("click", renderLeaderboard);
 $("#menuToggle").addEventListener("click", () => $(".sidebar").classList.toggle("open"));
 $$(".auth-tab").forEach((button) => button.addEventListener("click", () => setAuthTab(button.dataset.authTab)));
 $("#loginForm").addEventListener("submit", (event) => {
@@ -160,5 +201,6 @@ async function init() {
   navigate();
   await renderAccountState();
   currentUser = currentUser || null;
+  if (location.hash === "#leaderboard") await renderLeaderboard();
 }
 init();

@@ -258,6 +258,40 @@ app.get("/api/progress", requireAuth, async (req, res, next) => {
   }
 });
 
+app.get("/api/leaderboard", requireAuth, async (_req, res, next) => {
+  try {
+    const [rows] = await pool.execute(`
+      SELECT
+        u.name,
+        COUNT(a.id) AS attempts,
+        SUM(a.score) AS points,
+        SUM(a.total) AS possible,
+        ROUND(
+          100.0 * SUM(a.score) / NULLIF(SUM(a.total), 0),
+          1
+        ) AS accuracy
+      FROM users u
+      INNER JOIN quiz_attempts a ON a.user_id = u.id
+      GROUP BY u.id, u.name
+      ORDER BY points DESC, accuracy DESC, attempts DESC, u.name ASC
+      LIMIT 50
+    `);
+
+    res.json({
+      leaderboard: rows.map((row, index) => ({
+        rank: index + 1,
+        name: row.name,
+        points: Number(row.points),
+        possible: Number(row.possible),
+        accuracy: Number(row.accuracy),
+        attempts: Number(row.attempts)
+      }))
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 const quizzes = {
   "web-basics": [
     {
