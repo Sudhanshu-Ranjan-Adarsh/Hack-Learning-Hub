@@ -8,6 +8,7 @@ const MySQLStore = require("express-mysql-session")(session);
 const mysql = require("mysql2/promise");
 const bcrypt = require("bcryptjs");
 const rateLimit = require("express-rate-limit");
+const quizBank = require("./quiz-bank");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -292,52 +293,95 @@ app.get("/api/leaderboard", requireAuth, async (_req, res, next) => {
   }
 });
 
-const quizzes = {
-  "web-basics": [
-    {
-      question: "Which language defines the structure of a web page?",
-      options: ["HTML", "CSS", "SQL", "Bash"],
-      answer: 0
-    },
-    {
-      question: "Which technology is mainly used to style a web page?",
-      options: ["Node.js", "CSS", "PostgreSQL", "Git"],
-      answer: 1
-    },
-    {
-      question: "Which browser API can send an HTTP request from JavaScript?",
-      options: ["fetch()", "print()", "SELECT()", "mkdir()"],
-      answer: 0
-    }
-  ],
-  "full-stack": [
-    {
-      question: "What is the backend mainly responsible for?",
-      options: [
-        "Only colors",
-        "Server-side logic and APIs",
-        "Only page headings",
-        "Changing monitor brightness"
-      ],
-      answer: 1
-    },
-    {
-      question: "Which is a relational database?",
-      options: ["CSS", "HTML", "MySQL", "Figma"],
-      answer: 2
-    },
-    {
-      question: "What does an HTTP POST request commonly do?",
-      options: [
-        "Submit/create data",
-        "Style a page",
-        "Compile CSS",
-        "Resize an image"
-      ],
-      answer: 0
-    }
-  ]
+
+const legacyQuizzes = {
+  "web-basics": {
+    key: "web-basics",
+    title: "Web Basics",
+    category: "Web Development",
+    difficulty: "Easy",
+    questions: [
+      { question: "Which language defines the structure of a web page?", options: ["HTML", "CSS", "SQL", "Bash"], answer: 0 },
+      { question: "Which technology is mainly used to style a web page?", options: ["Node.js", "CSS", "PostgreSQL", "Git"], answer: 1 },
+      { question: "Which browser API can send an HTTP request from JavaScript?", options: ["fetch()", "print()", "SELECT()", "mkdir()"], answer: 0 }
+    ]
+  },
+  "full-stack": {
+    key: "full-stack",
+    title: "Full-stack Basics",
+    category: "Web Development",
+    difficulty: "Easy",
+    questions: [
+      { question: "What is the backend mainly responsible for?", options: ["Only colors", "Server-side logic and APIs", "Only page headings", "Changing monitor brightness"], answer: 1 },
+      { question: "Which is a relational database?", options: ["CSS", "HTML", "MySQL", "Figma"], answer: 2 },
+      { question: "What does an HTTP POST request commonly do?", options: ["Submit/create data", "Style a page", "Compile CSS", "Resize an image"], answer: 0 }
+    ]
+  }
 };
+
+const difficultyByKey = {
+  "c-basics": "Easy",
+  "c-control-flow": "Easy",
+  "java-fundamentals": "Easy",
+  "sql-fundamentals": "Easy",
+  "html-fundamentals": "Easy",
+  "python-basics": "Easy",
+  "network-fundamentals": "Easy",
+  "git-basics": "Easy",
+  "number-system": "Easy",
+  "ratio-and-percentage": "Easy",
+
+  "c-functions": "Medium",
+  "java-oop": "Medium",
+  "java-inheritance": "Medium",
+  "arrays-and-complexity": "Medium",
+  "stacks-and-queues": "Medium",
+  "sql-joins": "Medium",
+  "keys-and-constraints": "Medium",
+  "css-fundamentals": "Medium",
+  "javascript-basics": "Medium",
+  "python-collections": "Medium",
+  "process-management": "Medium",
+  "tcp-and-udp": "Medium",
+  "software-development": "Medium",
+  "time-and-work": "Medium",
+  "speed-and-distance": "Medium",
+
+  "c-pointers": "Hard",
+  "cpp-oop": "Hard",
+  "java-exceptions": "Hard",
+  "java-collections": "Hard",
+  "linked-lists": "Hard",
+  "trees-and-bst": "Hard",
+  "searching-and-sorting": "Hard",
+  "normalization": "Hard",
+  "transactions-and-indexes": "Hard",
+  "frontend-and-dom": "Hard",
+  "backend-and-apis": "Hard",
+  "python-errors-and-files": "Hard",
+  "deadlocks": "Hard",
+  "cpu-scheduling": "Hard",
+  "logical-reasoning": "Hard"
+};
+
+const quizzes = { ...quizBank, ...legacyQuizzes };
+
+for (const [key, quiz] of Object.entries(quizzes)) {
+  quiz.key = key;
+  quiz.difficulty = quiz.difficulty || difficultyByKey[key] || "Medium";
+}
+
+app.get("/api/quizzes", (_req, res) => {
+  res.json({
+    quizzes: Object.values(quizzes).map((quiz) => ({
+      key: quiz.key,
+      title: quiz.title,
+      category: quiz.category,
+      difficulty: quiz.difficulty,
+      questionCount: quiz.questions.length
+    }))
+  });
+});
 
 app.get("/api/quizzes/:key", requireAuth, (req, res) => {
   const quiz = quizzes[req.params.key];
@@ -347,8 +391,11 @@ app.get("/api/quizzes/:key", requireAuth, (req, res) => {
   }
 
   res.json({
-    key: req.params.key,
-    questions: quiz.map(({ question, options }) => ({
+    key: quiz.key,
+    title: quiz.title,
+    category: quiz.category,
+    difficulty: quiz.difficulty,
+    questions: quiz.questions.map(({ question, options }) => ({
       question,
       options
     }))
@@ -366,27 +413,28 @@ app.post("/api/quizzes/:key/submit", requireAuth, async (req, res, next) => {
     const answers = req.body.answers;
 
     if (!Array.isArray(answers) ||
-        answers.length !== quiz.length ||
-        answers.some((n) => !Number.isInteger(n) || n < 0 || n > 3)) {
-      return res.status(400).json({
-        error: "Invalid answers submitted."
-      });
+        answers.length !== quiz.questions.length ||
+        answers.some((n, i) =>
+          !Number.isInteger(n) ||
+          n < 0 ||
+          n >= quiz.questions[i].options.length
+        )) {
+      return res.status(400).json({ error: "Invalid answers submitted." });
     }
 
-    const score = quiz.reduce(
+    const score = quiz.questions.reduce(
       (sum, question, index) =>
         sum + (question.answer === answers[index] ? 1 : 0),
       0
     );
 
     await pool.execute(
-      `INSERT INTO quiz_attempts
-       (user_id, quiz_key, score, total)
+      `INSERT INTO quiz_attempts (user_id, quiz_key, score, total)
        VALUES (?, ?, ?, ?)`,
-      [req.session.user.id, req.params.key, score, quiz.length]
+      [req.session.user.id, req.params.key, score, quiz.questions.length]
     );
 
-    res.json({ score, total: quiz.length });
+    res.json({ score, total: quiz.questions.length });
   } catch (err) {
     next(err);
   }

@@ -5,6 +5,10 @@ let selectedQuiz = "web-basics";
 let quizData = null;
 let quizIndex = 0;
 let quizAnswers = [];
+let quizLibrary = [];
+let quizDifficulty = "All";
+let quizSearch = "";
+let quizLibraryLoaded = false;
 
 function toast(message) {
   const el = $("#toast");
@@ -76,10 +80,112 @@ async function handleAuth(form, endpoint, messageId) {
     toast("You're signed in.");
   } catch (error) { message.textContent = error.message; }
 }
-function renderQuizStart() {
-  $("#quizLabel").textContent = selectedQuiz === "web-basics" ? "WEB BASICS" : "FULL-STACK BASICS";
-  $("#quizCount").textContent = "3 QUESTIONS";
-  $("#quizContent").innerHTML = `<h3>Ready for a quick check?</h3><p>${currentUser ? "Your score will be saved to your account." : "Sign in first to submit the quiz and save your score."}</p><button class="btn btn-primary" id="startQuiz">Start quiz →</button>`;
+async function renderQuizStart() {
+  const list = $("#quizLibraryList");
+  const status = $("#quizLibraryStatus");
+  if (!list || !status) return;
+
+  status.textContent = "Loading quiz library...";
+  list.innerHTML = "";
+
+  try {
+    if (!quizLibraryLoaded) {
+      const data = await api("/api/quizzes");
+      quizLibrary = data.quizzes || [];
+      quizLibraryLoaded = true;
+    }
+
+    const searchInput = $("#quizSearch");
+    if (searchInput) {
+      searchInput.value = quizSearch;
+      searchInput.oninput = () => {
+        quizSearch = searchInput.value.trim().toLowerCase();
+        renderQuizCards();
+      };
+    }
+
+    $$(".difficulty-filter").forEach((button) => {
+      button.classList.toggle("active", button.dataset.difficulty === quizDifficulty);
+      button.onclick = () => {
+        quizDifficulty = button.dataset.difficulty;
+        $$(".difficulty-filter").forEach((item) =>
+          item.classList.toggle("active", item === button)
+        );
+        renderQuizCards();
+      };
+    });
+
+    renderQuizCards();
+    renderSelectedQuizStart();
+  } catch (error) {
+    status.textContent = "Quiz library could not be loaded: " + error.message;
+  }
+}
+
+function renderQuizCards() {
+  const list = $("#quizLibraryList");
+  const status = $("#quizLibraryStatus");
+  if (!list || !status) return;
+
+  const filtered = quizLibrary.filter((quiz) => {
+    const matchesDifficulty =
+      quizDifficulty === "All" || quiz.difficulty === quizDifficulty;
+    const haystack = [quiz.title, quiz.category, quiz.key, quiz.difficulty]
+      .join(" ")
+      .toLowerCase();
+    return matchesDifficulty && haystack.includes(quizSearch);
+  });
+
+  status.textContent = filtered.length
+    ? `${filtered.length} quiz${filtered.length === 1 ? "" : "zes"} found · ${quizLibrary.length} total`
+    : "No quizzes match your search. Try another topic or difficulty.";
+
+  list.innerHTML = filtered.map((quiz) => {
+    const active = quiz.key === selectedQuiz;
+    const difficulty = ["Easy", "Medium", "Hard"].includes(quiz.difficulty)
+      ? quiz.difficulty : "Medium";
+    return `
+      <button type="button" class="quiz-library-card ${active ? "selected" : ""}"
+        data-quiz-key="${escapeHtml(quiz.key)}" aria-pressed="${active}">
+        <span class="quiz-card-main">
+          <strong>${escapeHtml(quiz.title)}</strong>
+          <small>${escapeHtml(quiz.category)}</small>
+        </span>
+        <span class="quiz-card-meta">
+          <span class="difficulty-tag difficulty-${difficulty.toLowerCase()}">${difficulty}</span>
+          <small>${quiz.questionCount} questions</small>
+        </span>
+      </button>`;
+  }).join("");
+
+  list.querySelectorAll("[data-quiz-key]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedQuiz = button.dataset.quizKey;
+      renderQuizCards();
+      renderSelectedQuizStart();
+    });
+  });
+}
+
+function renderSelectedQuizStart() {
+  const quiz = quizLibrary.find((item) => item.key === selectedQuiz);
+  if (!quiz) {
+    $("#quizLabel").textContent = "QUIZ LIBRARY";
+    $("#quizCount").textContent = "Choose a quiz";
+    $("#quizContent").innerHTML = "<h3>Select a quiz to begin</h3>";
+    return;
+  }
+
+  $("#quizLabel").textContent = quiz.title.toUpperCase();
+  $("#quizCount").textContent =
+    `${quiz.difficulty.toUpperCase()} · ${quiz.questionCount} QUESTIONS`;
+  $("#quizContent").innerHTML = `
+    <h3>${escapeHtml(quiz.title)}</h3>
+    <p>${escapeHtml(quiz.category)} · ${quiz.difficulty} difficulty.</p>
+    <p>${currentUser
+      ? "Your score will be saved to your account."
+      : "Sign in first to take the quiz and save your score."}</p>
+    <button class="btn btn-primary" id="startQuiz">Start quiz →</button>`;
   $("#quizMessage").textContent = "";
   $("#startQuiz").addEventListener("click", startQuiz);
 }

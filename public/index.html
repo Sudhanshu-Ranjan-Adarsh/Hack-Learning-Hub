@@ -122,7 +122,18 @@ w<!doctype html>
           <article class="resource-card"><div class="resource-cover cover-db"><span>03 / DATABASE</span><strong>▤</strong><small>DATA THAT LASTS</small></div><div class="resource-body"><span class="resource-type">DOCS / PRACTICE</span><h3>SQL & Mariadb/MySQL</h3><p>Learn tables, queries, relationships, and reliable data storage.</p><a class="resource-link" href="https://mariadb.com/docs" target="_blank" rel="noreferrer">Open SQL tutorial ↗</a></div></article>
         </div>
         <div class="quiz-section"><div class="quiz-heading"><div><p class="section-kicker">QUICK CHECK</p><h2>Test your understanding</h2><p>Short quizzes with scores saved to your account.</p></div><span class="quiz-badge">3 QUESTIONS EACH</span></div>
-          <div class="quiz-picks"><button class="quiz-pick active" data-quiz="web-basics"><span class="quiz-pick-icon">⌘</span><span><b>Web basics</b><small>HTML · CSS · JavaScript</small></span><span class="arrow">→</span></button><button class="quiz-pick" data-quiz="full-stack"><span class="quiz-pick-icon green-icon">⌁</span><span><b>Full-stack basics</b><small>Backend · API · Database</small></span><span class="arrow">→</span></button></div>
+          <div class="quiz-library">
+            <label class="quiz-search-label" for="quizSearch">SEARCH QUIZZES</label>
+            <input id="quizSearch" class="quiz-search" type="search" placeholder="Search C++, SQL, DSA, aptitude..." autocomplete="off">
+            <div class="difficulty-filters" role="group" aria-label="Filter quizzes by difficulty">
+              <button type="button" class="difficulty-filter active" data-difficulty="All">All levels</button>
+              <button type="button" class="difficulty-filter" data-difficulty="Easy">Easy</button>
+              <button type="button" class="difficulty-filter" data-difficulty="Medium">Medium</button>
+              <button type="button" class="difficulty-filter" data-difficulty="Hard">Hard</button>
+            </div>
+            <p id="quizLibraryStatus" class="quiz-library-status" role="status">Loading quiz library...</p>
+            <div id="quizLibraryList" class="quiz-library-list"></div>
+          </div>
           <div class="quiz-box" id="quizBox"><div class="quiz-box-top"><span id="quizLabel">WEB BASICS</span><span id="quizCount">Ready when you are</span></div><div id="quizContent"><h3>Ready for a quick check?</h3><p>Choose a quiz above and start when you are ready.</p><button class="btn btn-primary" id="startQuiz">Start quiz →</button></div><p class="form-message" id="quizMessage" role="status"></p></div>
         </div>
         <footer class="footer"><span>HACK © 2026</span><span>Library & practice</span></footer>
